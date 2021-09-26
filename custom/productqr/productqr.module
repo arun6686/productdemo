@@ -1,0 +1,35 @@
+<?php
+
+/**
+ * @file
+ */
+use Drupal\Core\Block\BlockBase;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
+
+/**
+ * Implements hook_node_update().
+ */
+function productqr_node_update(Drupal\node\NodeInterface $node) {
+   $url = explode(",",$node->get('field_product_url')->getString());
+   generateQRCode($node->id(),$url[0]);
+
+}
+/**
+ * Implements hook_entity_insert().
+ */
+function productqr_entity_insert(Drupal\Core\Entity\EntityInterface $entity) {
+    if ($entity->getEntityType()->id() == 'node') {
+      generateQRCode($entity->id(),$entity->field_product_url->value);
+	}  
+} 
+
+/*
+ * Generating QR code
+*/
+function generateQRCode($nid,$url) {
+	$qr = QrCode::create($url);
+    $writer = new PngWriter();
+    $imgpath = \Drupal::service('file_system')->realpath(file_default_scheme() . "://");
+    $writer->write($qr)->saveToFile($imgpath."/prod_".$nid."_qr.png");
+}
